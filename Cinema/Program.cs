@@ -171,7 +171,7 @@ namespace Cinema
                     Console.Write($"{value,9}");
                 }
                 grandTotal += rowSum;
-                // Новий рядок таблиці
+                //Новий рядок таблиці
                 Console.WriteLine($"{rowSum,11}");
             }
 
