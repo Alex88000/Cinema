@@ -33,8 +33,7 @@ namespace Cinema
                         Pause();
                         break;
                     case "3":
-                        // ShowRevenueTable(); — таблиця на два входи буде потім 
-                        Console.WriteLine("Поки не зроблено.");
+                        ShowRevenueTable();
                         Pause();
                         break;
                     case "0":
@@ -98,6 +97,92 @@ namespace Cinema
                 double fullRevenue = price * totalSeats;
                 Console.WriteLine($"{price,12:F2}{soldRevenue,18:F2}{fullRevenue,18:F2}");
             }
+        }
+        const int MaxSize = 10;
+        // Читає розмір таблиці та повертає 0 якщо введено щось некоректне
+        static int ReadSize(string prompt)
+        {
+            Console.Write(prompt);
+            string text = Console.ReadLine();
+
+            if (!int.TryParse(text, out int value))
+            {
+                Console.WriteLine("Помилка:потрібно ввести ціле число.");
+                return 0;
+            }
+            if (value <= 0)
+            {
+                Console.WriteLine("Помилка:число має бути більшим за нуль.");
+                return 0;
+            }
+            if (value > MaxSize)
+            {
+                Console.WriteLine($"Помилка:не більше {MaxSize}.");
+                return 0;
+            }
+            return value;
+        }
+
+        // Таблиця виручки рядки,зали,стовпці,сеанси.
+        // Справа й знизу підсумки.
+        static void ShowRevenueTable()
+        {
+            // Межі таблиці не зашиті в код: питаємо в користувача
+            int rows = ReadSize($"Скільки залів (1–{MaxSize}): ");
+            if (rows == 0)
+            {
+                return;   // Невірний ввід тому таблицю не малюємо
+            }
+            int cols = ReadSize($"Скільки сеансів на день (1–{MaxSize}): ");
+            if (cols == 0)
+            {
+                return;
+            }
+
+            int ticketPrice = 120;               // ціна квитка в грн
+            int[] colSums = new int[cols];       // підсумки стовпців
+            int grandTotal = 0;                  // загальний підсумок
+
+            Console.WriteLine();
+            Console.WriteLine("Можлива виручка за день, грн (усі місця продано, квиток 120 грн)");
+            Console.WriteLine("Рядки — зали, стовпці — кількість сеансів на день");
+            Console.WriteLine();
+
+            // Шапка друкується до зовнішнього циклу
+            Console.Write($"{"Зал",8}");
+            for (int col = 1; col <= cols; col++)
+            {
+                Console.Write($"{col,9}");
+            }
+            Console.WriteLine($"{"Разом",11}");
+            Console.WriteLine(new string('-', 8 + 9 * cols + 11));
+
+            for (int row = 1; row <= rows; row++)
+            {
+                int seats = 60 + 20 * row;   // місткість залу залежить від його номера
+                int rowSum = 0;              // підсумок рядка обнуляється для кожного залу
+
+                Console.Write($"{row,8}");
+                for (int col = 1; col <= cols; col++)
+                {
+                    int value = seats * ticketPrice * col;
+                    rowSum += value;
+                    colSums[col - 1] += value;
+                    Console.Write($"{value,9}");
+                }
+                grandTotal += rowSum;
+                // Новий рядок таблиці
+                Console.WriteLine($"{rowSum,11}");
+            }
+
+            //Рядок підсумків під таблицею, вирівняний зі стовпцями
+            Console.WriteLine(new string('-', 8 + 9 * cols + 11));
+            Console.Write($"{"Разом",8}");
+            for (int col = 0; col < cols; col++)
+            {
+                Console.Write($"{colSums[col],9}");
+            }
+            Console.WriteLine($"{grandTotal,11}");
         }
     }
 }
