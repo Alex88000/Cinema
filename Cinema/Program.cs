@@ -12,40 +12,32 @@ namespace Cinema
             bool running = true;
             while (running)
             {
-                Console.WriteLine("Кінотеатр");
-                Console.WriteLine("1-довідка про програму");
-                Console.WriteLine("2-вартість квитків");
-                Console.WriteLine("3-можлива виручка");
-                Console.WriteLine("0-вихід");
-                Console.WriteLine("ваш вибір");
-                //  ентер чи літера не повалять програму
+                ShowMenu();                         // було 6 рядків WriteLine 
                 string choice = Console.ReadLine();
                 Console.WriteLine();
 
-                switch (choice)
+                switch (choice)                     //кожен case в один рядок 
                 {
-                    case "1":
-                        ShowAbout();
-                        Pause();
-                        break;
-                    case "2":
-                        ShowCostTable();
-                        Pause();
-                        break;
-                    case "3":
-                        ShowRevenueTable();
-                        Pause();
-                        break;
-                    case "0":
-                        running = false;
-                        Console.WriteLine("До побачення.");
-                        break;
+                    case "1": ShowAbout(); Pause(); break;
+                    case "2": ShowCostTable(); Pause(); break;
+                    case "3": ShowRevenueTable(); Pause(); break;
+                    case "0": running = false; Console.WriteLine("До побачення."); break;
                     default:
                         Console.WriteLine("Немає такого пункту. Спробуйте ще раз.");
                         Pause();
                         break;
                 }
             }
+        }
+        // Нове меню 
+        static void ShowMenu()
+        {
+            Console.WriteLine("Кінотеатр");
+            Console.WriteLine("1-довідка про програму");
+            Console.WriteLine("2-вартість квитків");
+            Console.WriteLine("3-можлива виручка");
+            Console.WriteLine("0-вихід");
+            Console.Write("Ваш вибір: ");
         }
 
         // пауза що б результат не зникав після очищення екрана
