@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Globalization;
 using System.Text;
 namespace Cinema
 {
@@ -85,10 +86,11 @@ namespace Cinema
         //таблиця сеанса 
         static void ShowCostTable()
         {
-            double priceFrom = 75.0;   // початок проміжку грн
-            double priceTo = 200.0;    // кінець проміжку грн
-            double priceStep = 12.5;   // дробовий крок
-            
+            double priceFrom = ReadDouble("Початкова ціна грн (1-1000): ", 1, 1000);
+            double priceTo = ReadDouble("Кінцева ціна грн: ", priceFrom, 1000);
+            double priceStep = ReadDouble("Крок ціни грн (0,5-1000): ", 0.5, 1000);
+            Console.WriteLine();
+
             Console.WriteLine("Касовий збір за сеанс залежно від ціни квитка");
             Console.WriteLine($"Заповненість залу: {CalculateOccupancy(SoldSeats, TotalSeats):F1}%");
             Console.WriteLine();
@@ -106,6 +108,51 @@ namespace Cinema
                 double soldRevenue = CalculateRevenue(price, SoldSeats);
                 double fullRevenue = CalculateRevenue(price, TotalSeats);
                 Console.WriteLine($"{price,12:F2}{soldRevenue,18:F2}{fullRevenue,18:F2}");
+            }
+        }
+        //питає доки не отримає число в межах min;max
+        static double ReadDouble(string prompt, double min, double max)
+        {
+            while (true)
+            {
+                Console.Write(prompt);
+                string text = Console.ReadLine();
+                if (text == null) text = "";
+                text = text.Trim().Replace(',', '.');   // щоб приймало і кому, і крапку
+
+                if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
+                {
+                    Console.WriteLine("Помилка: потрібно ввести число.");
+                    continue;
+                }
+                if (value < min || value > max)
+                {
+                    Console.WriteLine($"Помилка: число має бути від {min} до {max}.");
+                    continue;
+                }
+                return value;
+            }
+        }
+
+        // те саме для цілих чисел
+        static int ReadInt(string prompt, int min, int max)
+        {
+            while (true)
+            {
+                Console.Write(prompt);
+                string text = Console.ReadLine();
+
+                if (!int.TryParse(text, out int value))
+                {
+                    Console.WriteLine("Помилка: потрібно ввести ціле число.");
+                    continue;
+                }
+                if (value < min || value > max)
+                {
+                    Console.WriteLine($"Помилка: число має бути від {min} до {max}.");
+                    continue;
+                }
+                return value;
             }
         }
         const int MaxSize = 10;
