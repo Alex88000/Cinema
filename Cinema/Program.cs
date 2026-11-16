@@ -82,7 +82,7 @@ namespace Cinema
             return price * seats;
         }
 
-        // таблиця сеанса 
+        //таблиця сеанса 
         static void ShowCostTable()
         {
             double priceFrom = 75.0;   // початок проміжку грн
