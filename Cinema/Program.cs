@@ -92,6 +92,11 @@ namespace Cinema
             Console.WriteLine("Касовий збір за сеанс залежно від ціни квитка");
             Console.WriteLine($"Заповненість залу: {CalculateOccupancy(SoldSeats, TotalSeats):F1}%");
             Console.WriteLine();
+            PrintCostTable(priceFrom, priceTo, priceStep);
+        }
+        // табулювання: початок, кінець, крок
+        static void PrintCostTable(double priceFrom, double priceTo, double priceStep)
+        {
             Console.WriteLine($"{"Ціна, грн",12}{"Збір (60 міс.)",18}{"Збір (120 міс.)",18}");
             Console.WriteLine(new string('-', 48));
 
