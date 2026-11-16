@@ -67,6 +67,20 @@ namespace Cinema
             Console.WriteLine("Підсумкова величина: заповненість залів у відсотках");
             Console.WriteLine("і касовий збір за день.");
         }
+        // рахує заповненість у % нічого не виводить
+        static double CalculateOccupancy(int sold, int total)
+        {
+            if (total <= 0)
+            {
+                return 0;      // рання відмова, на нуль ділити не можна
+            }
+            return 100.0 * sold / total;
+        }
+
+        static double CalculateRevenue(double price, int seats)
+        {
+            return price * seats;
+        }
 
         // таблиця сеанса 
         static void ShowCostTable()
@@ -74,10 +88,9 @@ namespace Cinema
             double priceFrom = 75.0;   // початок проміжку грн
             double priceTo = 200.0;    // кінець проміжку грн
             double priceStep = 12.5;   // дробовий крок
-            int soldSeats = 60;        // місць продано
-            int totalSeats = 120;      // місць у залі
-
+            
             Console.WriteLine("Касовий збір за сеанс залежно від ціни квитка");
+            Console.WriteLine($"Заповненість залу: {CalculateOccupancy(SoldSeats, TotalSeats):F1}%");
             Console.WriteLine();
             Console.WriteLine($"{"Ціна, грн",12}{"Збір (60 міс.)",18}{"Збір (120 міс.)",18}");
             Console.WriteLine(new string('-', 48));
@@ -85,12 +98,15 @@ namespace Cinema
             // цикл малює рівну таблицю розрахунків
             for (double price = priceFrom; price <= priceTo + 1e-9; price += priceStep)
             {
-                double soldRevenue = price * soldSeats;
-                double fullRevenue = price * totalSeats;
+                double soldRevenue = CalculateRevenue(price, SoldSeats);
+                double fullRevenue = CalculateRevenue(price, TotalSeats);
                 Console.WriteLine($"{price,12:F2}{soldRevenue,18:F2}{fullRevenue,18:F2}");
             }
         }
         const int MaxSize = 10;
+        const int SoldSeats = 60;
+        const int TotalSeats = 120;
+
         // Читає розмір таблиці та повертає 0 якщо введено щось некоректне
         static int ReadSize(string prompt)
         {
