@@ -14,6 +14,9 @@ namespace Cinema
             const int MaxSize = 10;
             const int SoldSeats = 60;
             const int TotalSeats = 120;
+            const int Capacity = 100;
+            double[] prices = new double[Capacity];   //ціни квитків за сеанси
+            int count = 0;                            //  скільки елементів заповнено
             while (running)
             {
                 ShowMenu();                         // було 6 рядків WriteLine 
@@ -41,6 +44,15 @@ namespace Cinema
                             Pause();
                             break;
                         }
+                    case "4":
+                        {
+                            double newPrice = ReadDouble("Ціна квитка грн (1-1000): ", 1, 1000);
+                            AddValue(prices, ref count, newPrice, Capacity);
+                            Console.WriteLine($"Записів у масиві: {count}");   // лічильник у Main змінився
+                            Pause();
+                            break;
+                        }
+                    case "7": PrintValues(prices, count); Pause(); break;
                     case "0": running = false; Console.WriteLine("До побачення."); break;
                     default:
                         Console.WriteLine("Немає такого пункту. Спробуйте ще раз.");
@@ -49,6 +61,7 @@ namespace Cinema
                 }
             }
         }
+        
         // Нове меню 
         static void ShowMenu()
         {
@@ -56,6 +69,8 @@ namespace Cinema
             Console.WriteLine("1-довідка про програму");
             Console.WriteLine("2-вартість квитків");
             Console.WriteLine("3-можлива виручка");
+            Console.WriteLine("4-додати значення (ціну квитка)");
+            Console.WriteLine("7-показати всі значення");
             Console.WriteLine("0-вихід");
             Console.Write("Ваш вибір: ");
         }
@@ -123,6 +138,34 @@ namespace Cinema
                 double soldRevenue = CalculateRevenue(price, soldSeats);
                 double fullRevenue = CalculateRevenue(price, totalSeats);
                 Console.WriteLine($"{price,12:F2}{soldRevenue,18:F2}{fullRevenue,18:F2}");
+            }
+        }
+        
+
+        // Масив — посилальний тип, іде без ref. Лічильник int — з ref.
+        static void AddValue(double[] values, ref int count, double newValue, int capacity)
+        {
+            if (count == capacity)
+            {
+                Console.WriteLine("Місця більше немає.");
+                return;
+            }
+            values[count] = newValue;
+            count++;
+        }
+
+        static void PrintValues(double[] values, int count)
+        {
+            if (count == 0)
+            {
+                Console.WriteLine("Масив порожній.");
+                return;
+            }
+            Console.WriteLine($"{"№",4}{"Ціна, грн",12}");
+            Console.WriteLine(new string('-', 16));
+            for (int i = 0; i < count; i++)
+            {
+                Console.WriteLine($"{i + 1,4}{values[i],12:F2}");
             }
         }
         //питає доки не отримає число в межах min;max
