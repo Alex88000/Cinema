@@ -52,6 +52,37 @@ namespace Cinema
                             Pause();
                             break;
                         }
+                    case "5":
+                        {
+                            PrintValues(prices, count);
+                            if (count > 0)
+                            {
+                                int number = ReadInt("Номер для видалення: ", int.MinValue, int.MaxValue);
+                                RemoveAt(prices, ref count, number);   // номер перевіряє сам RemoveAt
+                                Console.WriteLine($"Записів у масиві: {count}");
+                            }
+                            Pause();
+                            break;
+                        }
+                    case "6":
+                        {
+                            Statistics(prices, count, out double sum, out double average);
+                            FindMax(prices, count, out double max, out int maxNumber);
+                            Console.WriteLine("Статистика цін квитків");
+                            if (count == 0)
+                            {
+                                Console.WriteLine("Масив порожній, статистики немає.");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Кількість:   {count}");
+                                Console.WriteLine($"Сума:        {sum:F2} грн");
+                                Console.WriteLine($"Середня:     {average:F2} грн");
+                                Console.WriteLine($"Найбільша:   {max:F2} грн (№ {maxNumber})");
+                            }
+                            Pause();
+                            break;
+                        }
                     case "7": PrintValues(prices, count); Pause(); break;
                     case "0": running = false; Console.WriteLine("До побачення."); break;
                     default:
@@ -70,6 +101,8 @@ namespace Cinema
             Console.WriteLine("2-вартість квитків");
             Console.WriteLine("3-можлива виручка");
             Console.WriteLine("4-додати значення (ціну квитка)");
+            Console.WriteLine("5-видалити за номером");
+            Console.WriteLine("6-показати статистику");
             Console.WriteLine("7-показати всі значення");
             Console.WriteLine("0-вихід");
             Console.Write("Ваш вибір: ");
@@ -168,7 +201,50 @@ namespace Cinema
                 Console.WriteLine($"{i + 1,4}{values[i],12:F2}");
             }
         }
-        //питає доки не отримає число в межах min;max
+        //Неправильний номер. повідомлення й вихід без змін
+        static void RemoveAt(double[] values, ref int count, int index)
+        {
+            if (index < 1 || index > count)
+            {
+                Console.WriteLine($"Неправильний номер.Допустимо від 1 до {count}.");
+                return;
+            }
+            for (int i = index - 1; i < count - 1; i++)
+            {
+                values[i] = values[i + 1];
+            }
+            count--;
+            Console.WriteLine("Елемент видалено.");
+        }
+        static void Statistics(double[] values, int count, out double sum, out double average)
+        {
+            sum = 0;
+            for (int i = 0; i < count; i++)
+            {
+                sum += values[i];
+            }
+            average = count > 0 ? sum / count : 0;   //захист від ділення на 0
+        }
+        static void FindMax(double[] values, int count, out double max, out int number)
+        {
+            max = 0;
+            number = 0;
+            if (count <= 0)
+            {
+                return;   //порожній набір
+            }
+            max = values[0];
+            number = 1;
+            for (int i = 1; i < count; i++)
+            {
+                if (values[i] > max)
+                {
+                    max = values[i];
+                    number = i + 1;
+                }
+            }
+        }
+        //питає доки не отримає число в межах min max
         static double ReadDouble(string prompt, double min, double max)
         {
             while (true)
@@ -176,7 +252,7 @@ namespace Cinema
                 Console.Write(prompt);
                 string text = Console.ReadLine();
                 if (text == null) text = "";
-                text = text.Trim().Replace(',', '.');   // щоб приймало і кому, і крапку
+                text = text.Trim().Replace(',', '.');   //щоб приймало і кому і крапку
 
                 if (!double.TryParse(text, NumberStyles.Float, CultureInfo.InvariantCulture, out double value))
                 {
