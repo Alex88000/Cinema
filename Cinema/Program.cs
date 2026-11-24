@@ -11,6 +11,9 @@ namespace Cinema
             Console.OutputEncoding = Encoding.UTF8;
             //змінна яка керує виходом з програми 
             bool running = true;
+            const int MaxSize = 10;
+            const int SoldSeats = 60;
+            const int TotalSeats = 120;
             while (running)
             {
                 ShowMenu();                         // було 6 рядків WriteLine 
@@ -20,8 +23,24 @@ namespace Cinema
                 switch (choice)                     //кожен case в один рядок 
                 {
                     case "1": ShowAbout(); Pause(); break;
-                    case "2": ShowCostTable(); Pause(); break;
-                    case "3": ShowRevenueTable(); Pause(); break;
+                    case "2":
+                        {
+                            double priceFrom = ReadDouble("Початкова ціна грн (1-1000): ", 1, 1000);
+                            double priceTo = ReadDouble("Кінцева ціна грн: ", priceFrom, 1000);
+                            double priceStep = ReadDouble("Крок ціни грн (0,5-1000): ", 0.5, 1000);
+                            Console.WriteLine();
+                            ShowCostTable(priceFrom, priceTo, priceStep, SoldSeats, TotalSeats);
+                            Pause();
+                            break;
+                        }
+                    case "3":
+                        {
+                            int rows = ReadInt($"Скільки залів (1–{MaxSize}): ", 1, MaxSize);
+                            int cols = ReadInt($"Скільки сеансів на день (1–{MaxSize}): ", 1, MaxSize);
+                            ShowRevenueTable(rows, cols);
+                            Pause();
+                            break;
+                        }
                     case "0": running = false; Console.WriteLine("До побачення."); break;
                     default:
                         Console.WriteLine("Немає такого пункту. Спробуйте ще раз.");
@@ -84,29 +103,25 @@ namespace Cinema
         }
 
         //таблиця сеанса 
-        static void ShowCostTable()
+        static void ShowCostTable(double priceFrom, double priceTo, double priceStep,
+                           int soldSeats, int totalSeats)
         {
-            double priceFrom = ReadDouble("Початкова ціна грн (1-1000): ", 1, 1000);
-            double priceTo = ReadDouble("Кінцева ціна грн: ", priceFrom, 1000);
-            double priceStep = ReadDouble("Крок ціни грн (0,5-1000): ", 0.5, 1000);
-            Console.WriteLine();
-
             Console.WriteLine("Касовий збір за сеанс залежно від ціни квитка");
-            Console.WriteLine($"Заповненість залу: {CalculateOccupancy(SoldSeats, TotalSeats):F1}%");
+            Console.WriteLine($"Заповненість залу: {CalculateOccupancy(soldSeats, totalSeats):F1}%");
             Console.WriteLine();
-            PrintCostTable(priceFrom, priceTo, priceStep);
+            PrintCostTable(priceFrom, priceTo, priceStep, soldSeats, totalSeats);
         }
         // табулювання: початок, кінець, крок
-        static void PrintCostTable(double priceFrom, double priceTo, double priceStep)
+        static void PrintCostTable(double priceFrom, double priceTo, double priceStep, int soldSeats, int totalSeats)
         {
-            Console.WriteLine($"{"Ціна, грн",12}{"Збір (60 міс.)",18}{"Збір (120 міс.)",18}");
+            Console.WriteLine($"{"Ціна, грн",12}{$"Збір ({soldSeats} міс.)",18}{$"Збір ({totalSeats} міс.)",18}");
             Console.WriteLine(new string('-', 48));
 
             // цикл малює рівну таблицю розрахунків
             for (double price = priceFrom; price <= priceTo + 1e-9; price += priceStep)
             {
-                double soldRevenue = CalculateRevenue(price, SoldSeats);
-                double fullRevenue = CalculateRevenue(price, TotalSeats);
+                double soldRevenue = CalculateRevenue(price, soldSeats);
+                double fullRevenue = CalculateRevenue(price, totalSeats);
                 Console.WriteLine($"{price,12:F2}{soldRevenue,18:F2}{fullRevenue,18:F2}");
             }
         }
@@ -155,49 +170,14 @@ namespace Cinema
                 return value;
             }
         }
-        const int MaxSize = 10;
-        const int SoldSeats = 60;
-        const int TotalSeats = 120;
-
-        // Читає розмір таблиці та повертає 0 якщо введено щось некоректне
-        static int ReadSize(string prompt)
-        {
-            Console.Write(prompt);
-            string text = Console.ReadLine();
-
-            if (!int.TryParse(text, out int value))
-            {
-                Console.WriteLine("Помилка:потрібно ввести ціле число.");
-                return 0;
-            }
-            if (value <= 0)
-            {
-                Console.WriteLine("Помилка:число має бути більшим за нуль.");
-                return 0;
-            }
-            if (value > MaxSize)
-            {
-                Console.WriteLine($"Помилка:не більше {MaxSize}.");
-                return 0;
-            }
-            return value;
-        }
+       
 
         // Таблиця виручки рядки,зали,стовпці,сеанси.
         // Справа й знизу підсумки.
-        static void ShowRevenueTable()
+        static void ShowRevenueTable(int rows, int cols)
         {
-            // Межі таблиці не зашиті в код: питаємо в користувача
-            int rows = ReadSize($"Скільки залів (1–{MaxSize}): ");
-            if (rows == 0)
-            {
-                return;   // Невірний ввід тому таблицю не малюємо
-            }
-            int cols = ReadSize($"Скільки сеансів на день (1–{MaxSize}): ");
-            if (cols == 0)
-            {
-                return;
-            }
+            
+            
 
             int ticketPrice = 120;               // ціна квитка в грн
             int[] colSums = new int[cols];       // підсумки стовпців
