@@ -15,8 +15,16 @@ namespace Cinema
             const int SoldSeats = 60;
             const int TotalSeats = 120;
             const int Capacity = 100;
-            double[] prices = new double[Capacity];   //ціни квитків за сеанси
-            int count = 0;                            //  скільки елементів заповнено
+            //паралельні масиви один запис=один і той самий індекс у всіх масивах
+            int[] ids = new int[Capacity];              // код сеансу
+            string[] titles = new string[Capacity];     // назва фільму
+            int[] hallIds = new int[Capacity];          // код залу
+            DateTime[] dates = new DateTime[Capacity];  // дата й час
+            double[] prices = new double[Capacity];     // ціна квитка
+            int[] sold = new int[Capacity];             // продано місць
+            int[] totals = new int[Capacity];           // усього місць
+            int count = 0;                              // скільки записів зайнято
+            int nextId = 1;                             // наступний номер (призначає програма)
             while (running)
             {
                 ShowMenu();                         // було 6 рядків WriteLine 
@@ -25,8 +33,12 @@ namespace Cinema
 
                 switch (choice)                     //кожен case в один рядок 
                 {
-                    case "1": ShowAbout(); Pause(); break;
                     case "2":
+                        AddSession(ids, titles, hallIds, dates, prices, sold, totals, Capacity, ref count, ref nextId);
+                        Pause();
+                        break;
+                    case "4": ShowAbout(); Pause(); break;
+                    case "5":
                         {
                             double priceFrom = ReadDouble("Початкова ціна грн (1-1000): ", 1, 1000);
                             double priceTo = ReadDouble("Кінцева ціна грн: ", priceFrom, 1000);
@@ -36,7 +48,7 @@ namespace Cinema
                             Pause();
                             break;
                         }
-                    case "3":
+                    case "6":
                         {
                             int rows = ReadInt($"Скільки залів (1–{MaxSize}): ", 1, MaxSize);
                             int cols = ReadInt($"Скільки сеансів на день (1–{MaxSize}): ", 1, MaxSize);
@@ -44,46 +56,7 @@ namespace Cinema
                             Pause();
                             break;
                         }
-                    case "4":
-                        {
-                            double newPrice = ReadDouble("Ціна квитка грн (1-1000): ", 1, 1000);
-                            AddValue(prices, ref count, newPrice, Capacity);
-                            Console.WriteLine($"Записів у масиві: {count}");   // лічильник у Main змінився
-                            Pause();
-                            break;
-                        }
-                    case "5":
-                        {
-                            PrintValues(prices, count);
-                            if (count > 0)
-                            {
-                                int number = ReadInt("Номер для видалення: ", int.MinValue, int.MaxValue);
-                                RemoveAt(prices, ref count, number);   // номер перевіряє сам RemoveAt
-                                Console.WriteLine($"Записів у масиві: {count}");
-                            }
-                            Pause();
-                            break;
-                        }
-                    case "6":
-                        {
-                            Statistics(prices, count, out double sum, out double average);
-                            FindMax(prices, count, out double max, out int maxNumber);
-                            Console.WriteLine("Статистика цін квитків");
-                            if (count == 0)
-                            {
-                                Console.WriteLine("Масив порожній, статистики немає.");
-                            }
-                            else
-                            {
-                                Console.WriteLine($"Кількість:   {count}");
-                                Console.WriteLine($"Сума:        {sum:F2} грн");
-                                Console.WriteLine($"Середня:     {average:F2} грн");
-                                Console.WriteLine($"Найбільша:   {max:F2} грн (№ {maxNumber})");
-                            }
-                            Pause();
-                            break;
-                        }
-                    case "7": PrintValues(prices, count); Pause(); break;
+                    
                     case "0": running = false; Console.WriteLine("До побачення."); break;
                     default:
                         Console.WriteLine("Немає такого пункту. Спробуйте ще раз.");
@@ -97,13 +70,10 @@ namespace Cinema
         static void ShowMenu()
         {
             Console.WriteLine("Кінотеатр");
-            Console.WriteLine("1-довідка про програму");
-            Console.WriteLine("2-вартість квитків");
-            Console.WriteLine("3-можлива виручка");
-            Console.WriteLine("4-додати значення (ціну квитка)");
-            Console.WriteLine("5-видалити за номером");
-            Console.WriteLine("6-показати статистику");
-            Console.WriteLine("7-показати всі значення");
+            Console.WriteLine("2-додати сеанс");
+            Console.WriteLine("4-довідка про програму");
+            Console.WriteLine("5-вартість квитків");
+            Console.WriteLine("6-можлива виручка");
             Console.WriteLine("0-вихід");
             Console.Write("Ваш вибір: ");
         }
@@ -173,77 +143,85 @@ namespace Cinema
                 Console.WriteLine($"{price,12:F2}{soldRevenue,18:F2}{fullRevenue,18:F2}");
             }
         }
-        
-
-        // Масив — посилальний тип, іде без ref. Лічильник int — з ref.
-        static void AddValue(double[] values, ref int count, double newValue, int capacity)
+        // місце де записуються всі масиви.Повертає false якщо сховище заповнене.
+        static bool AddRecord(int[] ids, string[] titles, int[] hallIds, DateTime[] dates,
+                              double[] prices, int[] sold, int[] totals,
+                              int capacity, ref int count, ref int nextId,
+                              string title, int hallId, DateTime date, double price,
+                              int soldSeats, int totalSeats)
         {
             if (count == capacity)
             {
-                Console.WriteLine("Місця більше немає.");
-                return;
+                return false;       //перевірка ДО запису
             }
-            values[count] = newValue;
+            ids[count] = nextId;    //номер призначає програма
+            titles[count] = title;
+            hallIds[count] = hallId;
+            dates[count] = date;
+            prices[count] = price;
+            sold[count] = soldSeats;
+            totals[count] = totalSeats;
             count++;
+            nextId++;
+            return true;
         }
 
-        static void PrintValues(double[] values, int count)
+        //збір все в локальні змінні і потім пишемо в масиви
+        static void AddSession(int[] ids, string[] titles, int[] hallIds, DateTime[] dates,
+                               double[] prices, int[] sold, int[] totals,
+                               int capacity, ref int count, ref int nextId)
         {
-            if (count == 0)
+            if (count == capacity)
             {
-                Console.WriteLine("Масив порожній.");
+                Console.WriteLine("Сховище заповнене.");
                 return;
             }
-            Console.WriteLine($"{"№",4}{"Ціна, грн",12}");
-            Console.WriteLine(new string('-', 16));
-            for (int i = 0; i < count; i++)
-            {
-                Console.WriteLine($"{i + 1,4}{values[i],12:F2}");
-            }
+            string title = ReadText("Назва фільму: ");
+            int hallId = ReadInt("Код залу (1–10): ", 1, 10);
+            DateTime date = ReadDate("Дата й час (дд.мм.рррр гг:хх): ");
+            double price = ReadDouble("Ціна квитка грн (1-1000): ", 1, 1000);
+            int totalSeats = ReadInt("Усього місць (1–500): ", 1, 500);
+            int soldSeats = ReadInt($"Продано місць (0–{totalSeats}): ", 0, totalSeats);
+
+            AddRecord(ids, titles, hallIds, dates, prices, sold, totals,
+                      capacity, ref count, ref nextId,
+                      title, hallId, date, price, soldSeats, totalSeats);
+            Console.WriteLine($"Додано сеанс №{ids[count - 1]}.");   // count уже збільшено
         }
-        //Неправильний номер. повідомлення й вихід без змін
-        static void RemoveAt(double[] values, ref int count, int index)
+
+        //рядок не може бути порожнім
+        static string ReadText(string prompt)
         {
-            if (index < 1 || index > count)
+            while (true)
             {
-                Console.WriteLine($"Неправильний номер.Допустимо від 1 до {count}.");
-                return;
-            }
-            for (int i = index - 1; i < count - 1; i++)
-            {
-                values[i] = values[i + 1];
-            }
-            count--;
-            Console.WriteLine("Елемент видалено.");
-        }
-        static void Statistics(double[] values, int count, out double sum, out double average)
-        {
-            sum = 0;
-            for (int i = 0; i < count; i++)
-            {
-                sum += values[i];
-            }
-            average = count > 0 ? sum / count : 0;   //захист від ділення на 0
-        }
-        static void FindMax(double[] values, int count, out double max, out int number)
-        {
-            max = 0;
-            number = 0;
-            if (count <= 0)
-            {
-                return;   //порожній набір
-            }
-            max = values[0];
-            number = 1;
-            for (int i = 1; i < count; i++)
-            {
-                if (values[i] > max)
+                Console.Write(prompt);
+                string text = Console.ReadLine();
+                if (text == null) text = "";
+                text = text.Trim();
+                if (text != "")
                 {
-                    max = values[i];
-                    number = i + 1;
+                    return text;
                 }
+                Console.WriteLine("Помилка: рядок не може бути порожнім.");
             }
         }
+
+        //дата і час у форматі дд.мм.рррр гг:хх
+        static DateTime ReadDate(string prompt)
+        {
+            while (true)
+            {
+                Console.Write(prompt);
+                string text = Console.ReadLine();
+                if (DateTime.TryParseExact(text, "dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture,
+                                           DateTimeStyles.None, out DateTime value))
+                {
+                    return value;
+                }
+                Console.WriteLine("Помилка: формат дд.мм.рррр гг:хх, наприклад 28.11.2026 18:30.");
+            }
+        }
+
         //питає доки не отримає число в межах min max
         static double ReadDouble(string prompt, double min, double max)
         {
